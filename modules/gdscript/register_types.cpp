@@ -85,7 +85,7 @@ public:
 			return;
 		}
 
-		// TODO: Readd compiled GDScript on export.
+		// TODO: Re-add compiled GDScript on export.
 		return;
 	}
 };
@@ -158,7 +158,6 @@ void unregister_gdscript_types() {
 #endif // TOOLS_ENABLED
 
 	GDScriptParser::cleanup();
-	GDScriptAnalyzer::cleanup();
 	GDScriptUtilityFunctions::unregister_functions();
 }
 

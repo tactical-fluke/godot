@@ -173,7 +173,7 @@ bool NativeScript::can_instance() const {
 
 #ifdef TOOLS_ENABLED
 	// Only valid if this is either a tool script or a "regular" script.
-	// (so an environment whre scripting is disabled (and not the editor) would not
+	// (so, an environment where scripting is disabled (and not the editor) would not
 	// create objects).
 	return script_data && (is_tool() || ScriptServer::is_scripting_enabled());
 #else
@@ -1726,6 +1726,40 @@ void NativeScriptLanguage::unregister_script(NativeScript *script) {
 		S->get().erase(script);
 		if (S->get().size() == 0) {
 			library_script_users.erase(S);
+
+			Map<String, Map<StringName, NativeScriptDesc>>::Element *L = library_classes.find(script->lib_path);
+			if (L) {
+				Map<StringName, NativeScriptDesc> classes = L->get();
+
+				for (Map<StringName, NativeScriptDesc>::Element *C = classes.front(); C; C = C->next()) {
+					// free property stuff first
+					for (OrderedHashMap<StringName, NativeScriptDesc::Property>::Element P = C->get().properties.front(); P; P = P.next()) {
+						if (P.get().getter.free_func) {
+							P.get().getter.free_func(P.get().getter.method_data);
+						}
+
+						if (P.get().setter.free_func) {
+							P.get().setter.free_func(P.get().setter.method_data);
+						}
+					}
+
+					// free method stuff
+					for (Map<StringName, NativeScriptDesc::Method>::Element *M = C->get().methods.front(); M; M = M->next()) {
+						if (M->get().method.free_func) {
+							M->get().method.free_func(M->get().method.method_data);
+						}
+					}
+
+					// free constructor/destructor
+					if (C->get().create_func.free_func) {
+						C->get().create_func.free_func(C->get().create_func.method_data);
+					}
+
+					if (C->get().destroy_func.free_func) {
+						C->get().destroy_func.free_func(C->get().destroy_func.method_data);
+					}
+				}
+			}
 
 			Map<String, Ref<GDNative>>::Element *G = library_gdnatives.find(script->lib_path);
 			if (G && G->get()->get_library()->is_reloadable()) {

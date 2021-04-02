@@ -1917,7 +1917,7 @@ void DisplayServerX11::cursor_set_custom_image(const RES &p_cursor, CursorShape 
 		Rect2i atlas_rect;
 
 		if (texture.is_valid()) {
-			image = texture->get_data();
+			image = texture->get_image();
 		}
 
 		if (!image.is_valid() && atlas_texture.is_valid()) {
@@ -1940,7 +1940,7 @@ void DisplayServerX11::cursor_set_custom_image(const RES &p_cursor, CursorShape 
 		ERR_FAIL_COND(texture_size.width > 256 || texture_size.height > 256);
 		ERR_FAIL_COND(p_hotspot.x > texture_size.width || p_hotspot.y > texture_size.height);
 
-		image = texture->get_data();
+		image = texture->get_image();
 
 		ERR_FAIL_COND(!image.is_valid());
 
@@ -3298,7 +3298,7 @@ void DisplayServerX11::process_events() {
 				if (xi.pressure_supported) {
 					mm->set_pressure(xi.pressure);
 				} else {
-					mm->set_pressure((mouse_get_button_state() & (1 << (BUTTON_LEFT - 1))) ? 1.0f : 0.0f);
+					mm->set_pressure((mouse_get_button_state() & (1 << (MOUSE_BUTTON_LEFT - 1))) ? 1.0f : 0.0f);
 				}
 				mm->set_tilt(xi.tilt);
 
@@ -4030,7 +4030,10 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 				use_prime = 0;
 			}
 
-			if (getenv("LD_LIBRARY_PATH")) {
+			// Some tools use fake libGL libraries and have them override the real one using
+			// LD_LIBRARY_PATH, so we skip them. *But* Steam also sets LD_LIBRARY_PATH for its
+			// runtime and includes system `/lib` and `/lib64`... so ignore Steam.
+			if (use_prime == -1 && getenv("LD_LIBRARY_PATH") && !getenv("STEAM_RUNTIME_LIBRARY_PATH")) {
 				String ld_library_path(getenv("LD_LIBRARY_PATH"));
 				Vector<String> libraries = ld_library_path.split(":");
 

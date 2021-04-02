@@ -1160,7 +1160,7 @@ CSGBrush *CSGBox3D::_build_brush() {
 				materialsw[face] = material;
 
 				face++;
-				//face 1
+				//face 2
 				facesw[face * 3 + 0] = face_points[2] * vertex_mul;
 				facesw[face * 3 + 1] = face_points[3] * vertex_mul;
 				facesw[face * 3 + 2] = face_points[0] * vertex_mul;
@@ -1679,7 +1679,7 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 	Vector<Point2> final_polygon = polygon;
 
 	if (Triangulate::get_area(final_polygon) > 0) {
-		final_polygon.invert();
+		final_polygon.reverse();
 	}
 
 	Vector<int> triangles = Geometry2D::triangulate_polygon(final_polygon);
